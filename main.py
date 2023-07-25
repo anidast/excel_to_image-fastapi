@@ -53,15 +53,17 @@ def capture(
     request: Request
 ):
     _, file_extension = os.path.splitext(file.filename)
-    # file.save(os.path.join('files/', file.filename))
-    # file.save('file_excel' + file_extension)
     with open('file_excel' + file_extension, "wb+") as file_object:
         file_object.write(file.file.read())
+
+    # with open(os.path.join('excelfile/', file.filename), "wb+") as file_object:
+    #     file_object.write(file.file.read())
 
     result = []
 
     for outputname, sheet, cell in zip(outputnames.split(', '), sheets.split(', '), cells.split(', ')):
         excel2img.export_img('file_excel' + file_extension, 'output/' + outputname, sheet, cell)
+        # excel2img.export_img(os.path.join('excelfile/', file.filename), 'output/' + outputname, sheet, cell)
         result.append(str(request.base_url) + 'output/' + outputname)
     
     return '\n'.join(result)
