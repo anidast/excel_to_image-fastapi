@@ -5,15 +5,36 @@ from fastapi.staticfiles import StaticFiles
 import excel2img
 import os
 
-app = FastAPI(
-    servers=[
-        {"url": "http://127.0.0.1:8000"},
-    ],
-    title="excel2img API", 
-    description="This API helps you to capture excel file into image file."
-    )
+appdesc = """
+This API helps you to capture excel file into image file.
 
-app.mount("/output", StaticFiles(directory="output"), name="output")
+Example usage in python script:
+```
+import requests
+import json
+
+api_url = "base_url/excel2img/"
+form_data = {
+    'outputnames': 'dashboard.png',
+    'sheets': 'Dashboard',
+    'cells': 'A1:R29',
+    }
+file = {'file': ('example.xlsx', open('C:\\Users\\Asus\\Documents\\example.xlsx', 'rb'))}
+
+response = requests.post(api_url, files=file, data=form_data) 
+result = json.loads(response.content)
+```
+
+`result`(response) only contains the image url, so you still need to get the image file. You can get image file with this:
+
+```
+image_output = requests.get(result).content
+with open('image_name.png', 'wb') as handler:
+    handler.write(image_output)
+```
+
+Note: To consume api you need the `requests` library in your environment, if you don't have it try `pip install requests`.
+"""
 
 outputnamedesc = """
 Images filename(with format) as outputs. Image format allowed:JPEG/PNG. 
@@ -36,6 +57,16 @@ Example: `A1:E5` or `A1:E5, G1:T25, B3:M40`
 
 _outputnames, sheets, and cells must be the same length!_
 """
+
+app = FastAPI(
+    servers=[
+        {"url": "http://127.0.0.1:8000"},
+    ],
+    title="excel2img API", 
+    description=appdesc
+    )
+
+app.mount("/output", StaticFiles(directory="output"), name="output")
 
 @app.post(
     "/excel2img/", 

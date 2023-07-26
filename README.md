@@ -32,8 +32,12 @@ uvicorn main:app --reload
 The command uvicorn main:app refers to:
 
 main: the file main.py (the Python "module").
+
 app: the object created inside of main.py with the line app = FastAPI().
+
 --reload: make the server restart after code changes. Only use for development.
+
+
 In the output, there's a line with something like:
 
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
