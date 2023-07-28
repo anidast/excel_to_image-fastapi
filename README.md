@@ -18,7 +18,7 @@ python -m venv env_name
 pip install -r requirements.txt
 ```
 
-## 4. Create `output` directory
+## 4. Create `input` and `output` directory
 
 
 ## 5. Run Server

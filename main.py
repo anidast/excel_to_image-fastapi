@@ -59,9 +59,6 @@ _outputnames, sheets, and cells must be the same length!_
 """
 
 app = FastAPI(
-    servers=[
-        {"url": "http://127.0.0.1:8000"},
-    ],
     title="excel2img API", 
     description=appdesc
     )
@@ -83,18 +80,13 @@ def capture(
     cells: Annotated[str, Form(description=celldesc)],
     request: Request
 ):
-    _, file_extension = os.path.splitext(file.filename)
-    with open('file_excel' + file_extension, "wb+") as file_object:
+    with open(os.path.join('input/', file.filename), "wb+") as file_object:
         file_object.write(file.file.read())
-
-    # with open(os.path.join('excelfile/', file.filename), "wb+") as file_object:
-    #     file_object.write(file.file.read())
 
     result = []
 
     for outputname, sheet, cell in zip(outputnames.split(', '), sheets.split(', '), cells.split(', ')):
-        excel2img.export_img('file_excel' + file_extension, 'output/' + outputname, sheet, cell)
-        # excel2img.export_img(os.path.join('excelfile/', file.filename), 'output/' + outputname, sheet, cell)
+        excel2img.export_img(os.path.join('input/', file.filename), 'output/' + outputname, sheet, cell)
         result.append(str(request.base_url) + 'output/' + outputname)
     
     return '\n'.join(result)
