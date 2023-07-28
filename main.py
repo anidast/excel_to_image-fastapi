@@ -13,13 +13,13 @@ Example usage in python script:
 import requests
 import json
 
-api_url = "base_url/excel2img/"
+api_url = "http://127.0.0.1:8000/excel2img/"
 form_data = {
     'outputnames': 'dashboard.png',
     'sheets': 'Dashboard',
     'cells': 'A1:R29',
     }
-file = {'file': ('example.xlsx', open('C:\\Users\\Asus\\Documents\\example.xlsx', 'rb'))}
+file = {'file': ('example.xlsx', open('D:\\Documents\\example.xlsx', 'rb'))}
 
 response = requests.post(api_url, files=file, data=form_data) 
 result = json.loads(response.content)
@@ -55,7 +55,17 @@ For multiple ranges use separator \", \"(comma+space) for each cell
 
 Example: `A1:E5` or `A1:E5, G1:T25, B3:M40`
 
-_outputnames, sheets, and cells must be the same length!_
+__outputnames, sheets, and cells must be the same length!__
+"""
+
+respdesc = """
+Return image url string (single) or list of image url (multiple). 
+
+Example: 
+
+_"http://127.0.0.1:8000/output/filename.png"_ (single)
+
+_["http://127.0.0.1:8000/output/filename1.png", "http://127.0.0.1:8000/output/filename2.png"]_ (multiple)
 """
 
 app = FastAPI(
@@ -69,7 +79,7 @@ app.mount("/output", StaticFiles(directory="output"), name="output")
     "/excel2img/", 
     responses={
         200: {
-            "description": "Return (list of) image url. Example: _http://127.0.0.1:8000/output/filename.png_",
+            "description": respdesc,
         }
     }
 )
@@ -89,4 +99,7 @@ def capture(
         excel2img.export_img(os.path.join('input/', file.filename), 'output/' + outputname, sheet, cell)
         result.append(str(request.base_url) + 'output/' + outputname)
     
-    return '\n'.join(result)
+    if (len(result) == 1):
+        return result[0]
+    else:
+        return result
