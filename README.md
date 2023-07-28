@@ -36,7 +36,14 @@ main: the file main.py (the Python "module").
 app: the object created inside of main.py with the line app = FastAPI().
 
 --reload: make the server restart after code changes. Only use for development.
+The --reload option consumes much more resources, is more unstable, etc.
+It helps a lot during development, but you shouldn't use it in production.
 
+
+Or you can run the live server with customable host and/or port:
+```
+uvicorn main:app --host 0.0.0.0 --port 80
+```
 
 In the output, there's a line with something like:
 
