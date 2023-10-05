@@ -51,4 +51,8 @@ INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 
 That line shows the URL where your app is being served, in your local machine.
 
-## Check Documentation at /docs
+## Check Documentation 
+
+Swagger API documentation can be found at {apiurl}/docs. 
+
+Examples of how to use API with code can be seen in the files example_capture.py for capture image and example_write.py for write to excel.
