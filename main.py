@@ -6,6 +6,8 @@ import os
 import xlwings as xw
 import pandas as pd
 import json
+from pathlib import Path
+from xlwings.reports import Markdown
 
 appdesc = """
 This API helps you work with excel without having to install it on your machine.
@@ -101,11 +103,12 @@ Example: `Report.xlsx`
 """
 
 respdesc2 = """
-Return excel file url in string. 
+Return excel file and pdf file url in string. 
 
 Example: 
 
-_"http://127.0.0.1:8000/output/report.xlsx"_ 
+_"'excel_url': http://127.0.0.1:8000/output/report.xlsx"_ 
+_"'pdf_url': http://127.0.0.1:8000/output/report.pdf"_ 
 """
 
 @app.post(
@@ -117,23 +120,49 @@ _"http://127.0.0.1:8000/output/report.xlsx"_
         }
     }
 )
-def write(
+async def write(
     template_file: Annotated[UploadFile, File(description="Excel file template.")],
     outputname: Annotated[str, Form(description=outputnamedesc)],
     data: Annotated[str, Form(description="Dictionary data to be filled in the template.")],
     request: Request
 ):
-    with open(os.path.join('input/', template_file.filename), "wb+") as file_object:
-        file_object.write(template_file.file.read())
+    try:
+        # Ensure input and output directories exist
+        os.makedirs('input', exist_ok=True)
+        os.makedirs('output', exist_ok=True)
 
-    data_dict = json.loads(data)
-    dataframe = {}
+        # Save the uploaded template file
+        template_path = Path('input') / template_file.filename
+        with open(template_path, "wb+") as file_object:
+            file_object.write(template_file.file.read())
 
-    for key in data_dict:
-        dataframe[key] = pd.DataFrame(data_dict[key])
+        # Parse the JSON data
+        data_dict = json.loads(data)
 
-    with xw.App(visible=False) as app:
-        book = app.render_template(os.path.join('input/', template_file.filename),
-                                os.path.join('output/', outputname),
-                                **dataframe)
-        return str(request.base_url) + 'output/' + outputname
+        # Prepare the data for rendering
+        prepared_data = {}
+        for key, value in data_dict.items():
+            if isinstance(value, list) and all(isinstance(item, dict) for item in value):
+                prepared_data[key] = pd.DataFrame(value)
+            else:
+                prepared_data[key] = Markdown(value)
+
+        # Define the paths
+        output_excel_path = Path('output') / outputname
+        output_pdf_path = Path('output') / (outputname.replace('.xlsx', '.pdf'))
+
+        # Use xlwings to render the template with data
+        with xw.App(visible=False) as app:
+            book = app.render_template(template_path, output_excel_path, **prepared_data)
+            book.to_pdf(output_pdf_path)
+            book.close()
+
+        # Return the URLs of the output files
+        return {
+            "excel_url": str(request.base_url) + 'output/' + outputname,
+            "pdf_url": str(request.base_url) + 'output/' + output_pdf_path.name
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+    

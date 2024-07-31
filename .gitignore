@@ -1,2 +1,4 @@
 /fastapi_venv/
 /__pycache__/
+/input/
+/output/
